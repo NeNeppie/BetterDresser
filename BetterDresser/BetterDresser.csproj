@@ -2,7 +2,7 @@
 <Project Sdk="Dalamud.NET.Sdk/15.0.0">
     <PropertyGroup>
         <Version>0.0.1</Version>
-        <PackageProjectUrl>https://github.com/goatcorp/SamplePlugin</PackageProjectUrl>
+        <PackageProjectUrl>https://github.com/NeNeppie/BetterDresser</PackageProjectUrl>
         <PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
         <IsPackable>false</IsPackable>
         <TargetFramework>net10.0-windows</TargetFramework>
@@ -11,9 +11,11 @@
     <PropertyGroup>
         <Author>NeNeppie</Author>
         <Name>Better Dresser</Name>
-        <Punchline>N/A</Punchline>
-        <Description>N/A</Description>
-        <RepoUrl>https://github.com/goatcorp/SamplePlugin</RepoUrl>
-        <Tags></Tags>
+        <Punchline>Combines the glamour dresser and armoire into one easy-to-use window</Punchline>
+        <Description>Enables a more convenient glamour plate making experience by displaying all available items in one window. 
+Filter and sort the items, as you'd normally do with the dresser, along with additional features.</Description>
+        <RepoUrl>https://github.com/NeNeppie/BetterDresser</RepoUrl>
+        <Tags>Glam, Glamour, Armoire, Dresser</Tags>
+        <CategoryTags>Utility, UI</CategoryTags>
     </PropertyGroup>
 </Project>
