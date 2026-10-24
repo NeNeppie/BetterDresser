@@ -1,0 +1,16 @@
+[
+    {
+        "Author": "NeNeppie",
+        "Name": "Better Dresser",
+        "Punchline": "Combines the glamour dresser and armoire into one easy-to-use window.",
+        "Description": "Enables a more convenient glamour plate making experience by displaying all available items in one window.\nFilter and sort the items, as you'd normally do with the dresser, along with additional features.",
+        "InternalName": "BetterDresser",
+        "ApplicableVersion": "any",
+        "DalamudApiLevel": 15,
+        "RepoUrl": "https://github.com/NeNeppie/BetterDresser",
+        "AssemblyVersion": "0.0.0.1",
+        "DownloadLinkInstall": "https://github.com/NeNeppie/BetterDresser/releases/latest/download/latest.zip",
+        "DownloadLinkUpdate": "https://github.com/NeNeppie/BetterDresser/releases/latest/download/latest.zip",
+        "IconUrl": "https://raw.githubusercontent.com/NeNeppie/BetterDresser/main/Images/icon.png"
+    }
+]
