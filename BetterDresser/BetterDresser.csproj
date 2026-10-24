@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Dalamud.NET.Sdk/15.0.0">
+    <PropertyGroup>
+        <Version>0.0.1</Version>
+        <PackageProjectUrl>https://github.com/goatcorp/SamplePlugin</PackageProjectUrl>
+        <PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
+        <IsPackable>false</IsPackable>
+        <TargetFramework>net10.0-windows</TargetFramework>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <Author>NeNeppie</Author>
+        <Name>Better Dresser</Name>
+        <Punchline>N/A</Punchline>
+        <Description>N/A</Description>
+        <RepoUrl>https://github.com/goatcorp/SamplePlugin</RepoUrl>
+        <Tags></Tags>
+    </PropertyGroup>
+</Project>
