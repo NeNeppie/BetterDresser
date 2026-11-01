@@ -1,4 +1,5 @@
 using System;
+using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using Lumina.Excel.Sheets;
@@ -19,8 +20,7 @@ public abstract record MirageItemBase
     public byte StainId1 { get; init; } = 0;
     public byte StainId2 { get; init; } = 0;
 
-    // TODO: Fix items initially applying only after clicking twice
-    public unsafe void ApplyToMiragePlate(bool leftRing = false)
+    public unsafe void ApplyToMiragePlate(bool leftRing = false, int retryCount = 0)
     {
         var agent = AgentMiragePrismMiragePlate.Instance();
         if (agent is null)
@@ -28,12 +28,19 @@ public abstract record MirageItemBase
 
         if (agent->Data is var data and not null)
         {
+            var slot = EquipmentSlot == EquipSlot.Fingers && leftRing ? (int)EquipSlot.Fingers + 1 : (int)EquipmentSlot;
             var originalSlot = data->SelectedItemIndex;
-            data->SelectedItemIndex = EquipmentSlot == EquipSlot.Fingers && leftRing ? (uint)EquipSlot.Fingers + 1u : (uint)EquipmentSlot;
+            data->SelectedItemIndex = (uint)slot;
             agent->SetSelectedItemData(Source, SourceId, ItemId, StainId1, StainId2);
 
             data->SelectedItemIndex = originalSlot;
             data->HasChanges = true;
+
+            if (retryCount < 5 && (data->CurrentItems[slot].ItemId != ItemId || data->CurrentItems[slot].Source != Source))
+            {
+                // IPluginLog.Get().Debug($"Retrying [{retryCount}] to apply item \"{Name}\" to plate.");
+                IFramework.Get().Run(() => ApplyToMiragePlate(leftRing, ++retryCount));
+            }
         }
     }
 }

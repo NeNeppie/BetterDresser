@@ -35,6 +35,7 @@ Internal Name: Better Dresser
 public sealed class Plugin : IDalamudPlugin
 {
     internal static IDalamudPluginInterface PluginInterface { get; private set; } = null!;
+    private static Service? _pluginService { get; set; }
 
     private const string CommandName = "/glamore";
     public readonly WindowSystem WindowSystem = new("SamplePlugin");
@@ -46,7 +47,7 @@ public sealed class Plugin : IDalamudPlugin
     public Plugin(IDalamudPluginInterface pluginInterface)
     {
         PluginInterface = pluginInterface;
-        PluginInterface.Create<Service>();
+        _pluginService = PluginInterface.Create<Service>();
         MainWindow = new(); // Service needs to be created before MainWindow
 
 #if DEBUG
@@ -73,6 +74,7 @@ public sealed class Plugin : IDalamudPlugin
         // Inspector.Dispose();
 #endif
         ICommandManager.Get().RemoveHandler(CommandName);
+        _pluginService?.Dispose();
     }
 
     public void ToggleMainUi() => MainWindow.Toggle();
