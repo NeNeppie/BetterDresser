@@ -5,17 +5,20 @@ using System.Linq;
 using System.Numerics;
 using BetterDresser.Utilities;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Game.Addon.Lifecycle;
+using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
+using FFXIVClientStructs.FFXIV.Component.GUI;
 using Lumina.Excel.Sheets;
 
 namespace BetterDresser.Windows;
 
-public class MainWindow : Window
+public class MainWindow : Window, IDisposable
 {
     private static Vector2 IconSize => new(Service.PluginConfig.IconSize * ImGuiHelpers.GlobalScale);
     private static float DyeCircleRadius => IconSize.X / 12f;
@@ -23,14 +26,38 @@ public class MainWindow : Window
 
     private List<MirageItemBase> _filteredItems = [];
     private EquipSlot _equipSlotFilter = EquipSlot.All;
+    private uint? _equipSlotAtkValue = null;
     private uint _maxLevelFilter = Configuration.MaxEquipLevel;
     private uint _minLevelFilter = Configuration.MinEquipLevel;
     private bool _drawWindow = false;
 
-    public MainWindow() : base("Better Dresser##betterdresser-main") => ToggleOn();
+    public MainWindow() : base("Better Dresser##betterdresser-main")
+    {
+        ToggleOn();
+        IAddonLifecycle.Get().RegisterListener(AddonEvent.PostUpdate, "MiragePrismMiragePlate", OnMiragePlateUpdate);
+    }
+
+    public void Dispose()
+    {
+        IAddonLifecycle.Get().UnregisterListener(AddonEvent.PostUpdate, "MiragePrismMiragePlate", OnMiragePlateUpdate);
+    }
 
     private void ToggleOn() => _drawWindow = true;
     private void ToggleOff() => _drawWindow = false;
+
+    private unsafe void OnMiragePlateUpdate(AddonEvent type, AddonArgs args)
+    {
+        var addon = (AtkUnitBase*)args.Addon.Address;
+        if (addon->AtkValues[78] is not {Type: AtkValueType.UInt or AtkValueType.UInt64, UInt: var equipSlot})
+            return;
+
+        if (Service.PluginConfig.AutoSwitchTabs && _equipSlotAtkValue != equipSlot)
+        {
+            _equipSlotAtkValue = equipSlot;
+            _equipSlotFilter = equipSlot == 11 ? EquipSlot.Fingers : (EquipSlot)equipSlot;
+            RefreshItemList();  
+        }
+    }
 
     public override void Draw()
     {
@@ -97,11 +124,8 @@ public class MainWindow : Window
 
         ImGuiHelpers.ScaledDummy(5f);
 
-        // TODO: Checkbox: Auto switch tabs when selecting slot in native dresser
         if (ImGui.Checkbox("Automatically change tabs when clicking on a slot", ref Service.PluginConfig.AutoSwitchTabs))
             Service.PluginConfig.Save();
-        ImGui.SameLine();
-        ImGui.TextColored(ImGuiColors.ErrorBackground, "Not Implemented");
 
         // TODO: Checkboxes: Highlight (frame) items from the dresser / armoire
 

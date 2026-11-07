@@ -70,6 +70,7 @@ public sealed class Plugin : IDalamudPlugin
         PluginInterface.UiBuilder.Draw -= WindowSystem.Draw;
 
         WindowSystem.RemoveAllWindows();
+        MainWindow.Dispose();
 #if DEBUG
         // Inspector.Dispose();
 #endif
