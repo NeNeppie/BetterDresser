@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using Dalamud.Configuration;
 
 namespace BetterDresser;
@@ -17,7 +16,7 @@ public class Configuration : IPluginConfiguration
 
     public int Version { get; set; } = 0;
 
-    public List<uint> ArmoireIdCache = [];
+    public string ArmoireUnlockBits = "";
     public uint IconSize = 50u;
     public byte ItemSortingMode = (byte)SortingMode.ItemLevelDescending;
     public bool AutoSwitchTabs = false;

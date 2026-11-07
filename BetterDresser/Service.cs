@@ -16,6 +16,7 @@ internal sealed class Service : IDisposable
 
     public void Dispose()
     {
+        PluginConfig.Save();
         ItemCache.Dispose();
     }
 }

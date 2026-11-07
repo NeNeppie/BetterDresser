@@ -45,7 +45,10 @@ public class MainWindow : Window
         if (ImGui.CollapsingHeader("Show Settings"))
             DrawConfig();
 
-        // TODO: Display warning when armoire is not loaded
+        if (!ItemCache.IsArmoireReady() && Service.ItemCache.ArmoireItems.Count == 0)
+        {
+            ImGui.TextColoredWrapped(ImGuiColors.WarningForeground, "The Armoire is not loaded. Load it up once to cache available items.");
+        }
 
         using var child = ImRaii.Child("##betterdresser-items", default, true);
         if (!child)
@@ -169,41 +172,45 @@ public class MainWindow : Window
             ImGui.OpenPopup($"##betterdresser-popup-right-{item.ItemId}");
         }
 
-        // TEMP: Refactor needed
-        if (item.DyeSlots != 0)
-        {
-            var drawlist = ImGui.GetWindowDrawList();
-            var circleCenter = cursorPos + new Vector2(-DyeCircleRadius, (IconSize.Y / 8f) - IconSize.Y);
-
-            drawlist.AddCircle(circleCenter, DyeCircleRadius, 0xFF000000u, DyeCircleThickness); 
-            if (item.StainId1 != 0)
-            {
-                if (IDataManager.Get().GetExcelSheet<Stain>()!.TryGetRow(item.StainId1, out var stain))
-                {
-                    ImGui.GetWindowDrawList().AddCircleFilled(circleCenter, DyeCircleRadius, ImGuiUtils.ArgbToAbgr(stain.Color)); 
-                }
-            }
-
-            if (item.DyeSlots == 2)
-            {    
-                circleCenter.Y += DyeCircleRadius * 2.5f;
-
-                drawlist.AddCircle(circleCenter, DyeCircleRadius, 0xFF000000u, DyeCircleThickness); 
-                if (item.StainId2 != 0)
-                {
-                    if (IDataManager.Get().GetExcelSheet<Stain>()!.TryGetRow(item.StainId2, out var stain))
-                    {
-                        ImGui.GetWindowDrawList().AddCircleFilled(circleCenter, DyeCircleRadius, ImGuiUtils.ArgbToAbgr(stain.Color));
-                    }
-                }
-            }
-        }
+        DrawItemDyes(item, cursorPos);
 
         DrawLeftClickPopup(item);
         DrawRightClickPopup(item);
     }
 
     private static void DrawItemName(MirageItemBase item) => ImGui.Text($"{item.Source}\n{item.SourceId}: [{item.ItemId}] {item.Name}");
+
+    private static void DrawItemDyes(MirageItemBase item, Vector2 cursorPos)
+    {
+        if (item.DyeSlots == 0)
+            return;
+
+        var drawlist = ImGui.GetWindowDrawList();
+        var circleCenter = cursorPos + new Vector2(-DyeCircleRadius, (IconSize.Y / 8f) - IconSize.Y);
+
+        drawlist.AddCircle(circleCenter, DyeCircleRadius, 0xFF000000u, DyeCircleThickness); 
+        if (item.StainId1 != 0)
+        {
+            if (IDataManager.Get().GetExcelSheet<Stain>()!.TryGetRow(item.StainId1, out var stain))
+            {
+                ImGui.GetWindowDrawList().AddCircleFilled(circleCenter, DyeCircleRadius, ImGuiUtils.ArgbToAbgr(stain.Color)); 
+            }
+        }
+
+        if (item.DyeSlots == 2)
+        {    
+            circleCenter.Y += DyeCircleRadius * 2.5f;
+
+            drawlist.AddCircle(circleCenter, DyeCircleRadius, 0xFF000000u, DyeCircleThickness); 
+            if (item.StainId2 != 0)
+            {
+                if (IDataManager.Get().GetExcelSheet<Stain>()!.TryGetRow(item.StainId2, out var stain))
+                {
+                    ImGui.GetWindowDrawList().AddCircleFilled(circleCenter, DyeCircleRadius, ImGuiUtils.ArgbToAbgr(stain.Color));
+                }
+            }
+        }
+    }
 
     private static void DrawLeftClickPopup(MirageItemBase item)
     {

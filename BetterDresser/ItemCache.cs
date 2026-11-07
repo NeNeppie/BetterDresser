@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -22,9 +23,13 @@ internal unsafe class ItemCache : IDisposable
     public bool UpdateReady = false;
 
     public static ExcelSheet<LuminaCabinet> CabinetSheet => IDataManager.Get().GetExcelSheet<LuminaCabinet>();
-    public static ImmutableDictionary<uint, Item> CabinetItems = CabinetSheet
+    public static ImmutableDictionary<uint, Item> CabinetToItem = CabinetSheet
         .Where(item => item.RowId > 0)
         .ToImmutableDictionary(item => item.RowId, item => item.Item.Value);
+
+    public static ImmutableDictionary<uint, uint> ItemToCabinet = CabinetSheet
+        .Where(item => item.RowId > 0 && item.Item.RowId != 0)
+        .ToImmutableDictionary(item => item.Item.RowId, item => item.RowId);
 
     private static AgentMiragePrismPrismBox* AgentPrismBox => AgentMiragePrismPrismBox.Instance();
     private static FFXIVClientStructs.FFXIV.Client.Game.UI.Cabinet Cabinet => UIState.Instance()->Cabinet;
@@ -34,8 +39,8 @@ internal unsafe class ItemCache : IDisposable
 
     public ItemCache()
     {
-        // TODO: load from configuration
-        //       Look into refreshing when adding/removing items from dresser?
+        LoadArmoireFromConfig();
+        // TODO: Look into refreshing when adding/removing items from dresser?
 
         // TODO: Framework.Instance()->GetUIModule()->GetAgentModule()->GetAgentByInternalId(46); // AgentMiragePrism, find tab corresponding with dresser/armoire
         IAddonLifecycle.Get().RegisterListener(AddonEvent.PostRequestedUpdate, "MiragePrismPrismBox", OnDresserPostUpdate);
@@ -135,14 +140,15 @@ internal unsafe class ItemCache : IDisposable
     private void LoadFromArmoire()
     {
         ArmoireItems.Clear();
-        foreach (var item in CabinetItems)
+        foreach (var row in CabinetToItem)
         {
-            if (!Cabinet.IsItemInCabinet(item.Key))
+            if (!Cabinet.IsItemInCabinet(row.Key))
                 continue;
             
-            ArmoireItems.Add(new MirageArmoireItem(item.Key, item.Value));
+            ArmoireItems.Add(new MirageArmoireItem(row.Key, row.Value));
         }
 
+        SaveArmoireToConfig(); // Maybe only do this whenever ArmoireItems actually changes?
         CombineItemLists();
     }
 
@@ -153,5 +159,37 @@ internal unsafe class ItemCache : IDisposable
         OwnedItems.AddRange(ArmoireItems);
         ReorderItemLists();
         UpdateReady = true;
+    }
+
+    // Doesn't *actually* Config.Save() because I don't want to write every 1.5 seconds
+    private void SaveArmoireToConfig()
+    {
+        var bits = new BitArray(CabinetToItem.Count);
+        foreach (var item in ArmoireItems)
+        {
+            if (ItemToCabinet.TryGetValue(item.ItemId, out var cabinetId))
+                bits[(int)cabinetId] = true;
+        }
+
+        var bytes = new byte[((bits.Length - 1) / 8) + 1];
+        bits.CopyTo(bytes, 0);
+        Service.PluginConfig.ArmoireUnlockBits = Convert.ToHexString(bytes);
+    }
+
+    private void LoadArmoireFromConfig()
+    {
+        var bytes = Convert.FromHexString(Service.PluginConfig.ArmoireUnlockBits);
+        var bits = new BitArray(bytes);
+        for (int i = 0; i < bits.Count; i++)
+        {
+            if (bits[i])
+            {
+                var cabinetId = (uint)i;
+                if (CabinetToItem.TryGetValue(cabinetId, out var item))
+                    ArmoireItems.Add(new MirageArmoireItem(cabinetId, item));
+            }
+        }
+
+        CombineItemLists();
     }
 }
