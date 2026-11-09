@@ -41,7 +41,6 @@ internal unsafe class ItemCache : IDisposable
     {
         LoadArmoireFromConfig();
         // TODO: Look into refreshing when adding/removing items from dresser?
-
         // TODO: Framework.Instance()->GetUIModule()->GetAgentModule()->GetAgentByInternalId(46); // AgentMiragePrism, find tab corresponding with dresser/armoire
         IAddonLifecycle.Get().RegisterListener(AddonEvent.PostRequestedUpdate, "MiragePrismPrismBox", OnDresserPostUpdate);
         IAddonLifecycle.Get().RegisterListener(AddonEvent.PostSetup, ["Cabinet", "CabinetWithdraw"], EnableArmoireScan);
