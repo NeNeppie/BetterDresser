@@ -15,7 +15,7 @@
         <Description>Enables a more convenient glamour plate making experience by displaying all available items in one window. 
 Filter and sort the items, as you'd normally do with the dresser, along with additional features.</Description>
         <RepoUrl>https://github.com/NeNeppie/BetterDresser</RepoUrl>
-        <IconUrl>https://github.com/NeNeppie/BetterDresser/Images/icon.png</IconUrl>
+        <IconUrl>https://github.com/NeNeppie/BetterDresser/raw/main/Images/icon.png</IconUrl>
         <Tags>Glam, Glamour, Armoire, Dresser</Tags>
         <CategoryTags>Utility, UI</CategoryTags>
     </PropertyGroup>
