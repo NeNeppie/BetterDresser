@@ -8,7 +8,7 @@
         "ApplicableVersion": "any",
         "DalamudApiLevel": 15,
         "RepoUrl": "https://github.com/NeNeppie/BetterDresser",
-        "AssemblyVersion": "0.0.0.2",
+        "AssemblyVersion": "0.0.0.3",
         "DownloadLinkInstall": "https://github.com/NeNeppie/BetterDresser/releases/latest/download/latest.zip",
         "DownloadLinkUpdate": "https://github.com/NeNeppie/BetterDresser/releases/latest/download/latest.zip",
         "IconUrl": "https://github.com/NeNeppie/BetterDresser/raw/main/Images/icon.png"
