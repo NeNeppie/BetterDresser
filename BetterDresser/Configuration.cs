@@ -20,6 +20,7 @@ public class Configuration : IPluginConfiguration
     public uint IconSize = 50u;
     public byte ItemSortingMode = (byte)SortingMode.ItemLevelDescending;
     public bool AutoSwitchTabs = false;
+    public bool CollapseOnTryon = false;
 
     public void Save() => Plugin.PluginInterface.SavePluginConfig(this);
 }

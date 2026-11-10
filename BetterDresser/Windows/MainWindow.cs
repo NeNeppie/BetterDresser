@@ -18,34 +18,54 @@ using Lumina.Excel.Sheets;
 
 namespace BetterDresser.Windows;
 
-public class MainWindow : Window, IDisposable
+public unsafe class MainWindow : Window, IDisposable
 {
     private static Vector2 IconSize => new(Service.PluginConfig.IconSize * ImGuiHelpers.GlobalScale);
     private static float DyeCircleRadius => IconSize.X / 12f;
     private static float DyeCircleThickness => IconSize.X / 48f;
 
+    private AtkUnitBase* _addon = null;
     private List<MirageItemBase> _filteredItems = [];
     private EquipSlot _equipSlotFilter = EquipSlot.All;
     private uint? _equipSlotAtkValue = null;
     private uint _maxLevelFilter = Configuration.MaxEquipLevel;
     private uint _minLevelFilter = Configuration.MinEquipLevel;
-    private bool _drawWindow = false;
+    private bool _isPositioned = false;
 
     public MainWindow() : base("Better Dresser##betterdresser-main")
     {
-        ToggleOn();
+        IAddonLifecycle.Get().RegisterListener(AddonEvent.PostSetup, "MiragePrismMiragePlate", TryToggleWindow);
         IAddonLifecycle.Get().RegisterListener(AddonEvent.PostUpdate, "MiragePrismMiragePlate", OnMiragePlateUpdate);
+        IAddonLifecycle.Get().RegisterListener(AddonEvent.PostClose, "MiragePrismMiragePlate", TryToggleWindow);
+
+        IAddonLifecycle.Get().RegisterListener(AddonEvent.PostRefresh, "Tryon", OnTryonRefresh);
     }
 
     public void Dispose()
     {
+        IAddonLifecycle.Get().UnregisterListener(AddonEvent.PostSetup, "MiragePrismMiragePlate", TryToggleWindow);
         IAddonLifecycle.Get().UnregisterListener(AddonEvent.PostUpdate, "MiragePrismMiragePlate", OnMiragePlateUpdate);
+        IAddonLifecycle.Get().UnregisterListener(AddonEvent.PostClose, "MiragePrismMiragePlate", TryToggleWindow);
+
+        IAddonLifecycle.Get().UnregisterListener(AddonEvent.PostRefresh, "Tryon", OnTryonRefresh);
     }
 
-    private void ToggleOn() => _drawWindow = true;
-    private void ToggleOff() => _drawWindow = false;
+    private void TryToggleWindow(AddonEvent type, AddonArgs args)
+    {
+        var addonDresser = IGameGui.Get().GetAddonByName("MiragePrismPrismBox");
+        var addonArmoire = IGameGui.Get().GetAddonByName("CabinetWithdraw");
 
-    private unsafe void OnMiragePlateUpdate(AddonEvent type, AddonArgs args)
+        if (addonDresser.IsNull && addonArmoire.IsNull)
+            return;
+
+        _addon = (AtkUnitBase*)args.Addon.Address;
+        base.Toggle();
+
+        if (base.IsOpen)
+            _isPositioned = false;
+    }
+
+    private void OnMiragePlateUpdate(AddonEvent type, AddonArgs args)
     {
         var addon = (AtkUnitBase*)args.Addon.Address;
         if (addon->AtkValues[78] is not {Type: AtkValueType.UInt or AtkValueType.UInt64, UInt: var equipSlot})
@@ -59,11 +79,30 @@ public class MainWindow : Window, IDisposable
         }
     }
 
-    public override void Draw()
+    private void OnTryonRefresh(AddonEvent type, AddonArgs args)
     {
-        if (!_drawWindow)
+        if (Service.PluginConfig.CollapseOnTryon)
+            base.Collapsed = true;
+    }
+
+    public override void PreDraw()
+    {
+        if (_addon is null || !_addon->IsVisible)
             return;
 
+        if (!_isPositioned)
+        {
+            _isPositioned = true;
+            var addonWidth = (_addon->RootNode->Width - 5f) * _addon->Scale;
+            var position = new Vector2(_addon->X + addonWidth, _addon->Y);
+            ImGuiHelpers.SetWindowPosRelativeMainViewport(base.WindowName, position);
+        }
+    }
+
+    public override void Draw()
+    {
+        base.Collapsed = null;
+        
 #if DEBUG
         ImGui.Text($"[{(ItemCache.IsDresserReady() ? 'V' : 'X')}] Items in the glamour dresser: {Service.ItemCache.DresserItems.Count}");
         ImGui.Text($"[{(ItemCache.IsArmoireReady() ? 'V' : 'X')}] Items in the armoire: {Service.ItemCache.ArmoireItems.Count}");
@@ -119,12 +158,16 @@ public class MainWindow : Window, IDisposable
 
     private void DrawConfig()
     {
+        // TODO: ImGui.IsItemDeactivatedAfterEdit()
         if (ImGui.SliderUInt("Icon Size", ref Service.PluginConfig.IconSize, Configuration.IconSizeMin, Configuration.IconSizeMax, default, ImGuiSliderFlags.None))
             Service.PluginConfig.Save();
 
         ImGuiHelpers.ScaledDummy(5f);
 
         if (ImGui.Checkbox("Automatically change tabs when clicking on a slot", ref Service.PluginConfig.AutoSwitchTabs))
+            Service.PluginConfig.Save();
+
+        if (ImGui.Checkbox("Collapse this window when clicking on \"Try On\"", ref Service.PluginConfig.CollapseOnTryon))
             Service.PluginConfig.Save();
 
         // TODO: Checkboxes: Highlight (frame) items from the dresser / armoire
